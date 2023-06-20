@@ -1,2 +1,2 @@
-# autocube
-Generative agents on the web
+# AutoCube
+AI NPCs on the web
