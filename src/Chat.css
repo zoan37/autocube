@@ -1,0 +1,89 @@
+#interface_container {
+    text-align: left;
+}
+
+#chat_area {
+    position: absolute;
+    bottom: 5px;
+    left: 0px;
+    padding: 20px;
+    background-color: transparent;
+    z-index: 100;
+    width: 350px;
+    background-color: red;
+}
+
+#settings_area {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 20px;
+    background-color: transparent;
+    z-index: 200;
+}
+
+.user_message {
+    display: flex;
+    flex-direction: row-reverse;
+    color: darkblue;
+    max-width: auto;
+}
+
+.user_message .message_span {
+    background-color: rgba(0, 0, 255, 0.1);
+    border-radius: 6px;
+    padding: 10px;
+    margin: 5px;
+}
+
+.assistant_message {
+    display: flex;
+    max-width: auto;
+}
+
+.assistant_message .message_span {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 10px;
+    margin: 5px;
+}
+
+#chat_message_box {
+    overflow-y: scroll;
+    height: 500px;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+#room_chat_area {
+    position: absolute;
+    bottom: 5px;
+    left: 0px;
+    padding: 20px;
+    background-color: transparent;
+    width: 350px;
+    color: white;
+}
+
+#room_chat_message_box {
+    overflow-y: scroll;
+    height: 500px;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+#ai_chat_input {
+    background-color: rgb(255, 255, 255, 0.25);
+}
+
+#room_chat_input {
+    background-color: rgb(255, 255, 255, 0.25);
+}
+
+#room_chat_input_container {
+    position: relative;
+}

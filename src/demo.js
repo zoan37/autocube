@@ -94,7 +94,7 @@ export function startDemo() {
         agent1._id = AVATAR_ID_1;
         agent2._id = AVATAR_ID_2;
 
-        runConversation([agent1, agent2], 'You are on a dance floor. There is another person near you.');
+        runConversation([agent1, agent2], 'You are on a dance floor. There is another person near you. You are encouraged to dance.');
     }
 
     runAgents();
