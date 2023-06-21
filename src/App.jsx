@@ -15,9 +15,6 @@ function App() {
     <>
       <div>
       </div>
-      <div>
-        <Chat />
-      </div>
     </>
   )
 }

@@ -1,0 +1,14 @@
+{
+    "grid": {
+        "color": "#78cce2"
+    },
+    "background": {
+        "color": "black",
+        "skybox_url": "skybox.jpg"
+    },
+    "character": {
+        "name": "Alice",
+        "description": "Alice is a nice person.",
+        "vrm_url": "/models/Female2.vrm"
+    }
+}

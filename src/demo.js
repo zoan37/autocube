@@ -6,12 +6,15 @@ import { loadMixamoAnimation } from './loadMixamoAnimation.js';
 import GUI from 'three/addons/libs/lil-gui.module.min.js';
 import { WindowAILLM } from './window_ai_llm';
 import { GenerativeAgent } from './generative_agent';
+import sceneConfig from './scene_config.json';
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export function startDemo() {
+    console.log("sceneConfig", sceneConfig);
+
     const AVATAR_ID_1 = 'avatar1';
     const AVATAR_ID_2 = 'avatar2';
 
@@ -97,7 +100,7 @@ export function startDemo() {
         runConversation([agent1, agent2], 'You are on a dance floor. There is another person near you. You are encouraged to dance.');
     }
 
-    runAgents();
+    // runAgents();
 
     function getAnimationUrl(name) {
         return `./animations/${name}.fbx`;
@@ -120,7 +123,7 @@ export function startDemo() {
 
     // camera
     const camera = new THREE.PerspectiveCamera(30.0, window.innerWidth / window.innerHeight, 0.1, 2000.0);
-    camera.position.set(0.0, 1.0, 10.0);
+    camera.position.set(0.0, 1.0, 5.0);
 
     // camera controls
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -136,13 +139,13 @@ export function startDemo() {
     light.position.set(1.0, 1.0, 1.0).normalize();
     scene.add(light);
 
-    scene.background = new THREE.Color('black');
+    scene.background = new THREE.Color(sceneConfig.background.color);
 
     // const defaultModelUrl = './models/VRM1_Constraint_Twist_Sample.vrm';
     // const defaultModelUrl = './models/Male1.vrm';
     // const defaultModelUrl = './models/Female1.vrm';
-    const model1Url = './models/Female2.vrm';
-    const model2Url = './models/Male1.vrm';
+    const model1Url = sceneConfig.character.vrm_url;
+    // const model2Url = './models/Male1.vrm';
 
     // gltf and vrm
     let currentVrm = undefined;
@@ -258,6 +261,7 @@ export function startDemo() {
             return;
         }
 
+        // skip if already playing same animation
         if (avatar.currentAnimationAction == animationAction) {
             return;
         }
@@ -276,17 +280,6 @@ export function startDemo() {
         }
 
         avatar.currentAnimationAction = animationAction;
-
-        // animationAction.reset();
-        // animationAction.play();
-
-        /*
-        avatar.currentAnimationAction.reset()
-            .setEffectiveTimeScale(1)
-            .setEffectiveWeight(1)
-            .fadeIn(DURATION)
-            .play();
-        */
     }
 
     async function createAvatar(id, modelUrl) {
@@ -339,99 +332,13 @@ export function startDemo() {
     async function initializeAvatars() {
         const avatar1 = await createAvatar(AVATAR_ID_1, model1Url);
         scene.add(avatar1.vrm.scene);
-        avatar1.vrm.scene.position.set(0.8, 0, 0);
-        avatar1.vrm.scene.rotation.y = -Math.PI / 2;
+        avatar1.vrm.scene.position.set(0, 0, 0);
+        // avatar1.vrm.scene.rotation.y = Math.PI / 2;
 
         playAnimation(AVATAR_ID_1, 'Idle');
-
-        const avatar2 = await createAvatar(AVATAR_ID_2, model2Url);
-        scene.add(avatar2.vrm.scene);
-        avatar2.vrm.scene.position.set(-0.8, 0, 0);
-        avatar2.vrm.scene.rotation.y = Math.PI / 2;
-
-        playAnimation(AVATAR_ID_2, 'Idle');
-
-        /*
-        'Jumping',
-        'Chicken Dance',
-        'Gangnam Style',
-        'Samba Dancing',
-        'Silly Dancing',
-        'Snake Hip Hop Dance',
-        'Twist Dance',
-        'Wave Hip Hop Dance',
-        */
-
-        /*
-        setTimeout(() => {
-            playAnimation(AVATAR_ID_1, 'Jumping');
-            playAnimation(AVATAR_ID_2, 'Jumping');
-
-            setTimeout(() => {
-                playAnimation(AVATAR_ID_1, 'Chicken Dance');
-                playAnimation(AVATAR_ID_2, 'Chicken Dance');
-
-                setTimeout(() => {
-                    playAnimation(AVATAR_ID_1, 'Gangnam Style');
-                    playAnimation(AVATAR_ID_2, 'Gangnam Style');
-
-                    setTimeout(() => {
-                        playAnimation(AVATAR_ID_1, 'Samba Dancing');
-                        playAnimation(AVATAR_ID_2, 'Samba Dancing');
-
-                        setTimeout(() => {
-                            playAnimation(AVATAR_ID_1, 'Silly Dancing');
-                            playAnimation(AVATAR_ID_2, 'Silly Dancing');
-
-                            setTimeout(() => {
-                                playAnimation(AVATAR_ID_1, 'Snake Hip Hop Dance');
-                                playAnimation(AVATAR_ID_2, 'Snake Hip Hop Dance');
-
-                                setTimeout(() => {
-                                    playAnimation(AVATAR_ID_1, 'Twist Dance');
-                                    playAnimation(AVATAR_ID_2, 'Twist Dance');
-
-                                    setTimeout(() => {
-                                        playAnimation(AVATAR_ID_1, 'Wave Hip Hop Dance');
-                                        playAnimation(AVATAR_ID_2, 'Wave Hip Hop Dance');
-                                    }, 2000);
-                                }, 2000);
-                            }, 2000);
-                        }, 2000);
-                    }, 2000);
-                }, 2000);
-            }, 2000);
-        }, 2000);
-        */
     }
 
     initializeAvatars();
-
-    /*
-    loadVRM(model1Url, (error, data) => {
-        const gltf = data.gltf;
-        const vrm = data.vrm;
-
-        console.log(gltf);
-
-        scene.add(vrm.scene);
-
-        vrm.scene.position.set(0.8, 0, 0);
-        vrm.scene.rotation.y = -Math.PI / 2;
-    });
-
-    loadVRM(model2Url, (error, data) => {
-        const gltf = data.gltf;
-        const vrm = data.vrm;
-
-        console.log(gltf);
-
-        scene.add(vrm.scene);
-
-        vrm.scene.position.set(-0.8, 0, 0);
-        vrm.scene.rotation.y = Math.PI / 2;
-    });
-    */
 
     // mixamo animation
     function loadFBX(animationUrl) {
@@ -453,7 +360,7 @@ export function startDemo() {
     }
 
     // helpers
-    const gridColor = '#78cce2';
+    const gridColor = sceneConfig.grid.color;
     const gridHelper = new THREE.GridHelper(10, 10, gridColor, gridColor);
     scene.add(gridHelper);
 
@@ -482,22 +389,6 @@ export function startDemo() {
             }
         }
 
-        /*
-        // if animation is loaded
-        if (currentMixer) {
-
-            // update the animation
-            currentMixer.update(deltaTime);
-
-        }
-
-        if (currentVrm) {
-
-            currentVrm.update(deltaTime);
-
-        }
-        */
-
         renderer.render(scene, camera);
 
     }
@@ -509,4 +400,15 @@ export function startDemo() {
         timeScale: 1.0,
 
     };
+
+    window.addEventListener('resize', onWindowResize, false);
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+    }
 }
