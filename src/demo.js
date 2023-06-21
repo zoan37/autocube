@@ -156,6 +156,8 @@ export function startDemo() {
         scene.background = skybox;
     }
 
+    // TODO: reorient panorama skybox to match orentation of cubemap skybox
+    // TODO: support rotation of skybox on scene config
     if (sceneConfig.background.skybox_url) {
         // load panorama
         let texture = new THREE.TextureLoader().load(sceneConfig.background.skybox_url);
