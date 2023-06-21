@@ -1,10 +1,12 @@
 {
     "grid": {
-        "color": "#78cce2"
+        "color": "white",
+        "size": 10,
+        "divisions": 100
     },
     "background": {
         "color": "black",
-        "skybox_url": "skybox.jpg"
+        "skybox_path": "/skyboxes/digital_painting_cyberpunk/"
     },
     "character": {
         "name": "Alice",

@@ -141,6 +141,28 @@ export function startDemo() {
 
     scene.background = new THREE.Color(sceneConfig.background.color);
 
+    if (sceneConfig.background.skybox_path) {
+        // load cubemap
+        const skybox = new THREE.CubeTextureLoader()
+            .setPath(sceneConfig.background.skybox_path)
+            .load([
+                'px.jpg',
+                'nx.jpg',
+                'py.jpg',
+                'ny.jpg',
+                'pz.jpg',
+                'nz.jpg',
+            ]);
+        scene.background = skybox;
+    }
+
+    if (sceneConfig.background.skybox_url) {
+        // load panorama
+        let texture = new THREE.TextureLoader().load(sceneConfig.background.skybox_url);
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.background = texture;
+    }
+
     // const defaultModelUrl = './models/VRM1_Constraint_Twist_Sample.vrm';
     // const defaultModelUrl = './models/Male1.vrm';
     // const defaultModelUrl = './models/Female1.vrm';
@@ -361,7 +383,11 @@ export function startDemo() {
 
     // helpers
     const gridColor = sceneConfig.grid.color;
-    const gridHelper = new THREE.GridHelper(10, 10, gridColor, gridColor);
+    const gridHelper = new THREE.GridHelper(
+        sceneConfig.grid.size, 
+        sceneConfig.grid.divisions,
+        gridColor,
+        gridColor);
     scene.add(gridHelper);
 
     const axesHelper = new THREE.AxesHelper(5);
