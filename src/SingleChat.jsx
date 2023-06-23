@@ -49,7 +49,7 @@ const SingleChat = () => {
                         },
                         {
                             temperature: 0.7,
-                            maxTokens: 200,
+                            maxTokens: 300,
                             // Handle partial results if they can be streamed in
                             onStreamResult: (res) => {
                                 console.log(res.message.content)
@@ -98,7 +98,19 @@ const SingleChat = () => {
         setMessageHistory(messages);
         setChatProcessing(true);
 
-        const stream = await getChatResponseStream(messages).catch(
+        const systemMessage = {
+            content: "You are a 3D avatar in a virtual world. The user is another avatar in the same world.",
+            role: "system"
+        }
+
+        const inputMessages = [
+            systemMessage,
+            ...messages,
+        ];
+
+        console.log('inputMessages', inputMessages);
+
+        const stream = await getChatResponseStream(inputMessages).catch(
             (e) => {
                 console.error(e);
                 return null;
