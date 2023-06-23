@@ -12,6 +12,8 @@ const SingleChat = () => {
         isChatting: false
     });
 
+    const [chatProcessing, setChatProcessing] = useState(false);
+
     const [messageHistory, setMessageHistory] = useState([]);
 
     const [actionHistory, setActionHistory] = useState([]);
@@ -20,6 +22,7 @@ const SingleChat = () => {
     const messageInput = useRef(null);
     const chatMessagesEnd = useRef(null);
     const roomChatMessagesEnd = useRef(null);
+    const chatMessagesEndRef = useRef(null);
 
     async function getChatResponseStream(
         messages,
@@ -71,6 +74,10 @@ const SingleChat = () => {
 
 
     const formSendMessage = async () => {
+        if (chatProcessing) {
+            return;
+        }
+
         const message = messageInput.current.value;
         if (message.length > 0) {
             // alert(message);
@@ -78,12 +85,18 @@ const SingleChat = () => {
             messageInput.current.value = '';
         }
 
-        const messages = [
+        let messages = [
+            ...messageHistory,
             {
                 content: message,
                 role: "user"
             }
         ]
+
+        console.log('messageHistory before', messageHistory);
+
+        setMessageHistory(messages);
+        setChatProcessing(true);
 
         const stream = await getChatResponseStream(messages).catch(
             (e) => {
@@ -92,12 +105,12 @@ const SingleChat = () => {
             }
         );
         if (stream == null) {
-            // setChatProcessing(false);
+            setChatProcessing(false);
             return;
         }
 
         let history = [
-            ...messageHistory,
+            ...messages,
             {
                 content: "",
                 role: "assistant"
@@ -131,13 +144,14 @@ const SingleChat = () => {
                 setMessageHistory(history);
             }
         } catch (e) {
-            // setChatProcessing(false);
+            setChatProcessing(false);
             console.error(e);
         } finally {
             reader.releaseLock();
         }
 
         setMessageHistory(history);
+        setChatProcessing(false);
     };
 
     useEffect(() => {
@@ -145,13 +159,18 @@ const SingleChat = () => {
         // document.getElementById('new_messages_button_container').style.display = 'none';
     }, []);
 
+    const scrollToBottom = () => {
+        chatMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(scrollToBottom, [messageHistory]);
+
     // <div ref={chatMessagesEndRef}></div>
-    
+
     return (
         <>
             <div id="chat_area">
                 <div id="chat_message_box">
-                    yoooo
                     {messageHistory.map((message, index) => (
                         index >= 0 && (
                             <div key={index} className={message.role === 'user' ? 'user_message' : 'assistant_message'}>
@@ -161,13 +180,14 @@ const SingleChat = () => {
                             </div>
                         )
                     ))}
+                    <div ref={chatMessagesEndRef}></div>
                 </div>
                 <div className="input-group">
                     <input
                         type="text"
-                        className="form-control"
-                        placeholder="Type a message"
-                        aria-label="Type a message"
+                        className="form-control chat-input"
+                        placeholder="Message"
+                        aria-label="Message"
                         aria-describedby="button-addon2"
                         ref={messageInput}
                         onKeyUp={(e) => {
@@ -177,10 +197,11 @@ const SingleChat = () => {
                         }}
                     />
                     <button
-                        className="btn btn-outline-secondary"
+                        className="btn btn-outline-secondary chat-send-button"
                         type="button"
                         id="button-addon2"
                         onClick={formSendMessage}
+                        disabled={chatProcessing}
                     >
                         Send
                     </button>

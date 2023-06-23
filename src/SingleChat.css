@@ -10,7 +10,7 @@
     background-color: transparent;
     z-index: 100;
     width: 350px;
-    background-color: red;
+    background-color: transparent;
 }
 
 #settings_area {
@@ -30,7 +30,7 @@
 }
 
 .user_message .message_span {
-    background-color: rgba(0, 0, 255, 0.1);
+    background-color: rgba(204, 230, 254, 0.5);
     border-radius: 6px;
     padding: 10px;
     margin: 5px;
@@ -42,7 +42,7 @@
 }
 
 .assistant_message .message_span {
-    background-color: rgba(255, 255, 255, 0.15);
+    background-color: rgba(255, 255, 255, 0.5);
     border-radius: 6px;
     padding: 10px;
     margin: 5px;
@@ -54,7 +54,7 @@
     padding: 10px;
     margin-bottom: 15px;
     border-radius: 6px;
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: rgba(255, 255, 255, 0.5);
 }
 
 #room_chat_area {
@@ -86,4 +86,18 @@
 
 #room_chat_input_container {
     position: relative;
+}
+
+.chat-input {
+    background-color: rgba(255, 255, 255, 0.8);
+}
+
+.chat-input:focus {
+    background-color: rgba(255, 255, 255, 0.8);
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.chat-send-button {
+    background-color: rgba(255, 255, 255, 0.8);
 }
