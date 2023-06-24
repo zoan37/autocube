@@ -39,10 +39,12 @@ const SingleChat = () => {
 
     // TODO: handle case of user spamming generate calls, should wait some time for generate to finish
     const generate3DObject = async () => {
-        const inputText = 'an underwater temple';
+        const inputText = 'an sky temple';
         const promptObject = { prompt: inputText };
 
-        const output = await ai.current.BETA_generate3DObject(promptObject, {
+        // Temp: testing with window.ai directly
+        // ai.current
+        const output = await window.ai.BETA_generate3DObject(promptObject, {
             extension: "application/x-ply",
             numInferenceSteps: 16,
         });

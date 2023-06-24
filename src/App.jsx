@@ -1,21 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import SingleChat from './SingleChat.jsx'
 // @ts-ignore
-import { startDemo } from "./demo.js";
+import { startGenDemo } from "./gen_demo.js";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
 
-  startDemo();
+  useEffect(() => {
+    console.log('App.jsx useEffect')
+    startGenDemo();
+  }, []);
 
   return (
     <>
-      <div>
-      </div>
-      <SingleChat />
     </>
   )
 }
