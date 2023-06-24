@@ -99,9 +99,14 @@ export function startGenDemo() {
 
     }
 
-    const worldOctree = new Octree();
+    let worldOctree = new Octree();
 
-    const playerCollider = new Capsule(new THREE.Vector3(0, 0.35, 0), new THREE.Vector3(0, 1, 0), 0.35);
+    // TODO: change height of the ground based on the loaded environment
+    const CAPSULE_HEIGHT_OFF_GROUND = 75;
+    const CAPSULE_Y1 = 0.35 + CAPSULE_HEIGHT_OFF_GROUND;
+    const CAPSULE_Y2 = 1 + CAPSULE_HEIGHT_OFF_GROUND;
+
+    const playerCollider = new Capsule(new THREE.Vector3(0, CAPSULE_Y1, 0), new THREE.Vector3(0, CAPSULE_Y2, 0), 0.35);
 
     const playerVelocity = new THREE.Vector3();
     const playerDirection = new THREE.Vector3();
@@ -396,7 +401,7 @@ export function startGenDemo() {
     }
 
     // TODO: handle case of user spamming generate calls, should wait some time for generate to finish
-    const generate3DObject = async () => {
+    const generate3DObject = async (inputText) => {
         try {
             if (!window.ai) {
                 alert('window.ai not found');
@@ -408,7 +413,7 @@ export function startGenDemo() {
 
         console.log('generating...')
 
-        const inputText = 'a floating island';
+        // const inputText = 'a floating island';
         const promptObject = { prompt: inputText };
 
         console.log('promptObject', promptObject);
@@ -427,27 +432,47 @@ export function startGenDemo() {
         const data_uri = output[0].uri;
 
         // save to file
-        /*
         const link = document.createElement('a');
         link.download = filename;
         link.href = data_uri;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        */
 
         return output[0].uri;
     };
 
-    window.generate3DObject = generate3DObject;
+    let currentEnvironmentScene = null;
+    let octreeHelper = null;
 
-    async function loadScene() {
-        console.log('loading scene');
+    async function generateNewEnvironment(inputText) {
 
-        // const plyURI = await generate3DObject();
+        const plyURI = await generate3DObject(inputText);
 
-        const plyURI = './models/ply/an underwater temple.ply'
+        if (currentEnvironmentScene) {
+            scene.remove(currentEnvironmentScene);
+        }
 
+        if (octreeHelper) {
+            scene.remove(octreeHelper);
+        }
+
+        // TODO: maybe a way to clear an Octree? Or create a subclass to do that
+        worldOctree = new Octree();
+
+        loadPlyEnvironment(plyURI, () => {
+            console.log('new environment loaded');
+
+            octreeHelper = new OctreeHelper(worldOctree);
+            octreeHelper.visible = false;
+            scene.add(octreeHelper);
+
+            // reset player's xyz position
+            respawnPlayerPosition();
+        });
+    }
+
+    function loadPlyEnvironment(plyURI, callback) {
         const plyLoader = new PLYLoader();
         plyLoader.load(plyURI, function (geometry) {
 
@@ -467,6 +492,9 @@ export function startGenDemo() {
             mesh.receiveShadow = true;
 
             const meshScene = new THREE.Scene();
+
+            currentEnvironmentScene = meshScene;
+
             meshScene.add(mesh);
 
             scene.add(meshScene);
@@ -494,22 +522,35 @@ export function startGenDemo() {
 
             });
 
-            const helper = new OctreeHelper(worldOctree);
-            helper.visible = false;
-            scene.add(helper);
+            callback();
+        });
+    }
+
+    window.generate3DObject = generate3DObject;
+    window.generateNewEnvironment = generateNewEnvironment;
+
+    async function loadScene() {
+        console.log('loading scene');
+
+        // const plyURI = await generate3DObject();
+
+        const plyURI = './models/ply/an underwater temple.ply'
+
+        loadPlyEnvironment(plyURI, () => {
+            octreeHelper = new OctreeHelper(worldOctree);
+            octreeHelper.visible = false;
+            scene.add(octreeHelper);
 
             const gui = new GUI({ width: 200 });
             gui.add({ debug: false }, 'debug')
                 .onChange(function (value) {
 
-                    helper.visible = value;
+                    octreeHelper.visible = value;
 
                 });
 
             animate();
         });
-
-
     }
 
     /*
@@ -545,17 +586,19 @@ export function startGenDemo() {
         await loadScene();
     }, 300); // time for window.ai to load
 
+    function respawnPlayerPosition() {
+        playerCollider.start.set(0, CAPSULE_Y1, 0);
+        playerCollider.end.set(0, CAPSULE_Y2, 0);
+        playerCollider.radius = 0.35;
+        camera.position.copy(playerCollider.end);
+        camera.rotation.set(0, 0, 0);
+    }
+
     function teleportPlayerIfOob() {
 
-        const LEVEL = -250;
+        const LEVEL = -200;
         if (camera.position.y <= LEVEL) {
-
-            playerCollider.start.set(0, 0.35, 0);
-            playerCollider.end.set(0, 1, 0);
-            playerCollider.radius = 0.35;
-            camera.position.copy(playerCollider.end);
-            camera.rotation.set(0, 0, 0);
-
+            respawnPlayerPosition();
         }
 
     }
