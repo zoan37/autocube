@@ -457,11 +457,28 @@ export function startGenDemo() {
     };
 
     let currentEnvironmentScene = null;
+    let currentEnvironmentPrompt = null;
+    let currentEnvironmentDataURI = null;
     let octreeHelper = null;
+
+    function saveEnvironmentPly() {
+        const filename = `${currentEnvironmentPrompt}.ply`;
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = currentEnvironmentDataURI;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    window.saveEnvironmentPly = saveEnvironmentPly;
 
     async function generateNewEnvironment(inputText) {
 
         const plyURI = await generate3DObject(inputText);
+
+        currentEnvironmentPrompt = inputText;
+        currentEnvironmentDataURI = plyURI;
 
         if (currentEnvironmentScene) {
             scene.remove(currentEnvironmentScene);
