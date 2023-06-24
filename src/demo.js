@@ -3,6 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { VRMLoaderPlugin, VRMUtils } from '@pixiv/three-vrm';
 import { loadMixamoAnimation } from './loadMixamoAnimation.js';
+import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 import GUI from 'three/addons/libs/lil-gui.module.min.js';
 import { WindowAILLM } from './window_ai_llm';
 import { GenerativeAgent } from './generative_agent';
@@ -179,6 +180,32 @@ export function startDemo() {
     const helperRoot = new THREE.Group();
     helperRoot.renderOrder = 10000;
     // scene.add(helperRoot);
+
+
+
+    // PLY file
+
+    const loader = new PLYLoader();
+    loader.load( './models/an underwater temple.ply', function ( geometry ) {
+
+        geometry.computeVertexNormals();
+
+        const material = new THREE.MeshStandardMaterial( { color: 0x009cff, flatShading: true } );
+        const mesh = new THREE.Mesh( geometry, material );
+
+        // mesh.position.y = - 0.2;
+       // mesh.position.z = 0.3;
+        mesh.rotation.x = - Math.PI / 2;
+        mesh.scale.multiplyScalar( 100 );
+
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+
+        scene.add( mesh );
+
+    } );
+
+
 
     function disposeVRM(vrm) {
         scene.remove(vrm.scene);

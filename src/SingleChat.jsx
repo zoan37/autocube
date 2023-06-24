@@ -24,6 +24,48 @@ const SingleChat = () => {
     const roomChatMessagesEnd = useRef(null);
     const chatMessagesEndRef = useRef(null);
 
+    const ai = useRef(null);
+    useEffect(() => {
+        const init = async () => {
+            try {
+                const windowAI = await getWindowAI();
+                ai.current = windowAI;
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        init();
+    }, []);
+
+    // TODO: handle case of user spamming generate calls, should wait some time for generate to finish
+    const generate3DObject = async () => {
+        const inputText = 'an underwater temple';
+        const promptObject = { prompt: inputText };
+
+        const output = await ai.current.BETA_generate3DObject(promptObject, {
+            extension: "application/x-ply",
+            numInferenceSteps: 16,
+        });
+
+        const filename = `${inputText}.ply`;
+
+        const data_uri = output[0].uri;
+
+        // save to file
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = data_uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        console.log('generate3DObject', output);
+
+        console.log('output[0].uri', output[0].uri)
+
+        return output[0].uri;
+    };
+
     async function getChatResponseStream(
         messages,
     ) {
@@ -92,6 +134,8 @@ const SingleChat = () => {
                 role: "user"
             }
         ]
+
+        await generate3DObject();
 
         console.log('messageHistory before', messageHistory);
 
