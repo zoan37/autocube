@@ -52,6 +52,10 @@ export function startGenDemo() {
 
     const container = document.getElementById('container');
 
+    // TODO: need a better solution, because with React.StrictMode, this code will run twice
+    // TODO: look into React Three Fiber 
+    container.innerHTML = ''; // reset because useEffect / Vite will rerun this code
+
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -434,6 +438,8 @@ export function startGenDemo() {
 
         return output[0].uri;
     };
+
+    window.generate3DObject = generate3DObject;
 
     async function loadScene() {
         console.log('loading scene');

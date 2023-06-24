@@ -6,6 +6,7 @@ import SingleChat from './SingleChat.jsx'
 // @ts-ignore
 import { startGenDemo } from "./gen_demo.js";
 
+// TODO: bug, useEffect called twice for some reason
 function App() {
   const [count, setCount] = useState(0);
 
