@@ -1,0 +1,53 @@
+<html>
+<head>
+<title>Autogen Test</title>
+</head>
+<body>
+    <script type="module">
+        const generate3DObject = async () => {
+			try {
+				if (!window.ai) {
+					alert('window.ai not found');
+					throw new Error('window.ai not found');
+				}
+            } catch (error) {
+                console.error(error);
+            }
+
+			const inputText = 'a floating island';
+			const promptObject = {prompt: inputText};
+
+			console.log('promptObject', promptObject);
+
+			const output = await window.ai.BETA_generate3DObject(promptObject, {
+				extension: "application/x-ply",
+				numInferenceSteps: 16,
+			});
+
+			console.log('generate3DObject', output);
+
+			console.log('output[0].uri', output[0].uri)
+
+			const filename = `${inputText}.ply`;
+
+			const data_uri = output[0].uri;
+
+            // save to file
+            /*
+			const link = document.createElement('a');
+			link.download = filename;
+			link.href = data_uri;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+            */
+
+			return output[0].uri;
+		};
+
+        setTimeout(() => {
+            generate3DObject();
+        }, 500); // time for window.ai to load
+    </script>
+</body>
+</html>

@@ -32,11 +32,11 @@ export function startGenDemo() {
     camera.rotation.order = 'YXZ';
 
     const fillLight1 = new THREE.HemisphereLight(0x8dc1de, 0x00668d, 1.5);
-    fillLight1.position.set(2, 1, 1);
+    fillLight1.position.set(2, 1 * 300, 1);
     scene.add(fillLight1);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
-    directionalLight.position.set(- 5, 25, - 1);
+    directionalLight.position.set(- 5 * 100, 25 * 100, - 1 * 100);
     directionalLight.castShadow = true;
     directionalLight.shadow.camera.near = 0.01;
     directionalLight.shadow.camera.far = 500;
@@ -56,6 +56,8 @@ export function startGenDemo() {
     // TODO: look into React Three Fiber 
     container.innerHTML = ''; // reset because useEffect / Vite will rerun this code
 
+    THREE.ColorManagement.enabled = true;
+
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -63,6 +65,9 @@ export function startGenDemo() {
     renderer.shadowMap.type = THREE.VSMShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.useLegacyLights = false;
+
+    renderer.outputColorSpace = THREE.SRGBColorSpace; // optional with post-processing
+
     container.appendChild(renderer.domElement);
 
     const stats = new Stats();
@@ -432,12 +437,14 @@ export function startGenDemo() {
         const data_uri = output[0].uri;
 
         // save to file
+        /*
         const link = document.createElement('a');
         link.download = filename;
         link.href = data_uri;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        */
 
         return output[0].uri;
     };
@@ -480,7 +487,12 @@ export function startGenDemo() {
 
             geometry.computeVertexNormals();
 
-            const material = new THREE.MeshStandardMaterial({ color: 0x009cff, flatShading: true });
+            // const material = new THREE.MeshStandardMaterial({ color: 0x009cff, flatShading: true });
+            // var material = new THREE.MeshBasicMaterial( { color: 0xffffff, specular: 0x111111, shininess: 200, vertexColors: THREE.VertexColors} );
+            var material = new THREE.MeshStandardMaterial({ 
+                vertexColors: true,
+                flatShading: true
+            });
             const mesh = new THREE.Mesh(geometry, material);
 
             // mesh.position.y = - 0.2;
@@ -530,6 +542,7 @@ export function startGenDemo() {
     window.generateNewEnvironment = generateNewEnvironment;
 
     async function loadScene() {
+
         console.log('loading scene');
 
         // const plyURI = await generate3DObject();
