@@ -359,7 +359,7 @@ export function startDemo() {
         avatar1.vrm.scene.position.set(0, 0, 0);
         // avatar1.vrm.scene.rotation.y = Math.PI / 2;
 
-        playAnimation(AVATAR_ID_1, 'Idle');
+        playAnimation(AVATAR_ID_1, 'Silly Dancing');
     }
 
     initializeAvatars();
