@@ -20,8 +20,8 @@
 			console.log('promptObject', promptObject);
 
 			const output = await window.ai.BETA_generate3DObject(promptObject, {
-				extension: "application/x-ply",
-				numInferenceSteps: 16,
+				extension: "ply",
+				numInferenceSteps: 16, 
 			});
 
 			console.log('generate3DObject', output);
