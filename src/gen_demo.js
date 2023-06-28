@@ -431,7 +431,7 @@ export function startGenDemo() {
         console.log('promptObject', promptObject);
 
         const output = await window.ai.BETA_generate3DObject(promptObject, {
-            extension: "application/x-ply",
+            extension: "ply",
             numInferenceSteps: 16,
         });
 
@@ -444,14 +444,12 @@ export function startGenDemo() {
         const data_uri = output[0].uri;
 
         // save to file
-        /*
         const link = document.createElement('a');
         link.download = filename;
         link.href = data_uri;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        */
 
         return output[0].uri;
     };
@@ -472,6 +470,102 @@ export function startGenDemo() {
     }
 
     window.saveEnvironmentPly = saveEnvironmentPly;
+
+    function throwObject() {
+        /*
+        const sphere = spheres[sphereIdx];
+
+        camera.getWorldDirection(playerDirection);
+
+        sphere.collider.center.copy(playerCollider.end).addScaledVector(playerDirection, playerCollider.radius * 1.5);
+
+        // throw the ball with more force if we hold the button longer, and if we move forward
+
+        const impulse = 15 + 30 * (1 - Math.exp((mouseTime - performance.now()) * 0.001));
+
+        sphere.velocity.copy(playerDirection).multiplyScalar(impulse);
+        sphere.velocity.addScaledVector(playerVelocity, 2);
+
+        sphereIdx = (sphereIdx + 1) % spheres.length;
+        */
+    }
+
+    window.generateNewObject = generateNewObject;
+
+    async function generateNewObject(inputText) {
+        const plyURI = await generate3DObject(inputText);
+
+        const plyLoader = new PLYLoader();
+        plyLoader.load(plyURI, function (geometry) {
+
+            console.log('ply loaded', geometry);
+
+            geometry.computeVertexNormals();
+
+            // const material = new THREE.MeshStandardMaterial({ color: 0x009cff, flatShading: true });
+            // var material = new THREE.MeshBasicMaterial( { color: 0xffffff, specular: 0x111111, shininess: 200, vertexColors: THREE.VertexColors} );
+            var material = new THREE.MeshStandardMaterial({ 
+                vertexColors: true,
+                // roughness: 0
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+
+            // mesh.position.y = - 0.2;
+            // mesh.position.z = 0.3;
+            mesh.rotation.x = - Math.PI / 2;
+            mesh.scale.multiplyScalar(1);
+
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            // sphere.collider.center.copy(playerCollider.end).addScaledVector(playerDirection, playerCollider.radius * 1.5);
+
+            // mesh.position.copy(playerCollider.end);
+
+            // place mesh in front of player
+            const playerDirection = getForwardVector();
+            mesh.position.copy(playerCollider.end).addScaledVector(playerDirection, playerCollider.radius * 3);
+
+            scene.add(mesh);
+
+            // TODO: add object to octree so player can collide with it
+
+            /*
+            const meshScene = new THREE.Scene();
+
+            currentEnvironmentScene = meshScene;
+
+            meshScene.add(mesh);
+
+            scene.add(meshScene);
+
+            // scene.add(mesh);
+
+            console.log('mesh from ply', mesh);
+
+            worldOctree.fromGraphNode(meshScene);
+
+            meshScene.traverse(child => {
+
+                if (child.isMesh) {
+
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+
+                    if (child.material.map) {
+
+                        child.material.map.anisotropy = 4;
+
+                    }
+
+                }
+
+            });
+            */
+
+            // callback();
+        });
+    }
 
     async function generateNewEnvironment(inputText) {
 
