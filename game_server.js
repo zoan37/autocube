@@ -85,8 +85,9 @@ function startServer() {
             const files = [file];
             const rootCid = await web3Storage.put(files);
 
-            res.send({
-                rootCid: rootCid
+            res.json({
+                rootCid: rootCid,
+                filename: name
             });
         } catch (e) {
             console.error(e);

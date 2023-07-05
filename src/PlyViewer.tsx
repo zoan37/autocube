@@ -35,7 +35,7 @@ const PlyViewer = (
               <table className="ply_view_table">
                 <tbody>
                   {generatedObjects.slice().reverse().map((object) => (
-                    <tr>
+                    <tr key={object.id}>
                       {
                         // TODO: We are not displaying a list of CanvasComponents, because when there are too many
                         // canvas contexts, we get the error "WARNING: Too many active WebGL contexts. Oldest context will be lost."
