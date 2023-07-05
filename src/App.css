@@ -40,3 +40,62 @@
 .read-the-docs {
   color: #888;
 }
+
+.info-bar {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+  right: 0px;
+	padding: 10px;
+	box-sizing: border-box;
+	text-align: center;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	pointer-events: none;
+	z-index: 100;
+
+  color: #fff;
+	font-family: Monospace;
+	font-size: 13px;
+	line-height: 24px;
+	overscroll-behavior: none;
+}
+
+.info-bar a {
+  user-select: auto;
+  pointer-events: auto;
+}
+
+.code-button {
+	position: fixed;
+	bottom: 16px;
+	right: 16px;
+
+	padding: 12px;
+	border-radius: 50%;
+	margin-bottom: 0px;
+
+	background-color: #FFF;
+	opacity: .9;
+	z-index: 999;
+
+	box-shadow: 0 0 4px rgba(0,0,0,.15);
+}
+.code-button:hover {
+  cursor: pointer;
+  opacity: 1;
+}
+.code-button img {
+  display: block;
+  width: var(--icon-size);
+}
+.code-button.text {
+  border-radius: 25px;
+  padding-right: 20px;
+  padding-left: 20px;
+  color: var(--color-blue);
+  opacity: 1;
+  font-weight: 500;
+}

@@ -1,33 +1,67 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect, useState } from 'react'
 import './App.css'
+// @ts-ignore
+import { startGenDemo } from "./gen_demo.js";
+import GenerateInput from './GenerateInput.tsx';
+import PlyViewer from './PlyViewer.tsx';
+import Screenshotter from './Screenshotter.tsx';
+
+interface GeneratedObject {
+  id: string;
+  prompt: string;
+  plyURI: string;
+  screenshotDataURI: string;
+}
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [generatedObjects, setGeneratedObjects] = useState([] as GeneratedObject[]);
+  const [screenshotObject, setScreenshotObject] = useState({} as GeneratedObject);
+
+  function handleScreenshot(screenshotDataUri: string) {
+    const clonedObjects : GeneratedObject[] = generatedObjects.slice();
+    const screenshotObjectIndex = clonedObjects.findIndex((object) => object.id === screenshotObject.id);
+    clonedObjects[screenshotObjectIndex].screenshotDataURI = screenshotDataUri;
+    setGeneratedObjects(clonedObjects);
+  }
+
+  useEffect(() => {
+    startGenDemo({
+      setGenerateObjectsHandler: (objects: GeneratedObject[]) => {
+        const clonedObjects = objects.slice();
+        setGeneratedObjects(clonedObjects);
+        console.log('setGeneratedObjects', clonedObjects);
+      },
+      setScreenshotObjectHandler: (object: GeneratedObject) => {
+        setScreenshotObject(object);
+      }
+    });
+  }, []);
 
   return (
     <>
+      <div className="info-bar">
+        World Generation Demo using <a href="https://windowai.io/" target="_blank">window.ai</a>
+        <br />
+        Generate environments and objects with natural language
+        <br />
+        MOUSE to look around and to throw balls
+        <br />
+        WASD to move and SPACE to jump
+        <br />
+        ESC to see your mouse
+      </div>
+      <PlyViewer
+        generatedObjects={generatedObjects}
+      />
+      <GenerateInput />
+      <Screenshotter object={screenshotObject} handleScreenshot={handleScreenshot}/>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
+        <a className="code-button" target="_blank"
+          href="https://github.com/zoan37/world-generation-demo"
+          title="View source code on GitHub">
+          <img src="/svg/ic_code_black_24dp.svg" />
         </a>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
