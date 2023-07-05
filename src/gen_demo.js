@@ -470,8 +470,33 @@ export function startGenDemo(config) {
         setScreenshotObjectHandler(newObject);
     }
 
+    async function uploadPly(prompt, plyURI) {
+        console.log('uploading ply');
+        console.log(plyURI);
+
+        // call game server with upload_ply endpoint
+        const response = await fetch('http://localhost:6483/upload_ply', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                prompt: prompt,
+                plyUri: plyURI
+            })
+        });
+
+        console.log('upload_ply response', response);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    }
+
     async function generateNewObject(inputText) {
         const plyURI = await generate3DObject(inputText);
+
+        await uploadPly(inputText, plyURI);
 
         addToGeneratedObjects(inputText, plyURI);
 
