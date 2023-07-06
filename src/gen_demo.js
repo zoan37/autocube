@@ -470,7 +470,7 @@ export function startGenDemo(config) {
         setScreenshotObjectHandler(newObject);
     }
 
-    async function uploadPly(prompt, plyURI) {
+    async function uploadPly(prompt, plyURI, object) {
         console.log('uploading ply');
         console.log(plyURI);
 
@@ -481,8 +481,10 @@ export function startGenDemo(config) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                worldId: '1',
                 prompt: prompt,
-                plyUri: plyURI
+                plyUri: plyURI,
+                object: object
             })
         });
 
@@ -496,7 +498,28 @@ export function startGenDemo(config) {
     async function generateNewObject(inputText) {
         const plyURI = await generate3DObject(inputText);
 
-        await uploadPly(inputText, plyURI);
+        const playerDirection = getForwardVector();
+        const newObjectPosition = new THREE.Vector3();
+        newObjectPosition.copy(playerCollider.end).addScaledVector(playerDirection, playerCollider.radius * 3);
+
+        await uploadPly(inputText, plyURI, {
+            type: 'object', // TODO: types are 'object' and 'environment', need to parameterize
+            position: {
+                x: newObjectPosition.x,
+                y: newObjectPosition.y,
+                z: newObjectPosition.z
+            },
+            rotation: {
+                x: 0,
+                y: 0,
+                z: 0
+            },
+            scale: {
+                x: 1, // TODO: need to modify this for object and environment
+                y: 1,
+                z: 1
+            }
+        });
 
         addToGeneratedObjects(inputText, plyURI);
 
@@ -518,9 +541,7 @@ export function startGenDemo(config) {
             mesh.castShadow = true;
             mesh.receiveShadow = true;
 
-            // place mesh in front of player
-            const playerDirection = getForwardVector();
-            mesh.position.copy(playerCollider.end).addScaledVector(playerDirection, playerCollider.radius * 3);
+            mesh.position.copy(newObjectPosition);
 
             scene.add(mesh);
         });

@@ -10,8 +10,38 @@ import { Server } from 'socket.io';
 import { Web3Storage } from 'web3.storage';
 import { Readable } from 'stream';
 
-
+import pg from 'pg';
 import 'dotenv/config';
+
+const { Pool } = pg;
+const { DATABASE_URL } = process.env;
+
+const pool = new Pool({
+  connectionString: DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
+});
+
+async function writeObject(object) {
+    console.log('writing object to database');
+    
+    // TODO: add timestamp column
+    const client = await pool.connect();
+    try {
+        const text = 'INSERT INTO objects(world_id, cid, filename, object) VALUES($1, $2, $3, $4)';
+        const values = [object.world_id, object.cid, object.filename, object.object];
+        
+        try {
+            await client.query(text, values);
+            console.log('inserted');
+        } catch (err) {
+            console.log(err.stack);
+        }
+    } finally {
+        client.release();
+    }
+}
 
 function dataUriToFileObject(dataUri, filename) {
     const base64String = dataUri.split(',')[1];
@@ -77,13 +107,20 @@ function startServer() {
     app.post('/upload_ply', express.json({ limit: '10mb' }), async (req, res) => {
         try {
             // parse the request body
-            const { prompt, plyUri } = req.body;
+            const { worldId, prompt, plyUri, object } = req.body;
 
             const name = prompt + '.ply';
             const file = dataUriToFileObject(plyUri, name);
 
             const files = [file];
             const rootCid = await web3Storage.put(files);
+
+            await writeObject({
+                world_id: worldId,
+                cid: rootCid,
+                filename: name,
+                object
+            });
 
             res.json({
                 rootCid: rootCid,
