@@ -7,12 +7,21 @@ import { OctreeHelper } from 'three/addons/helpers/OctreeHelper.js';
 import { Capsule } from 'three/addons/math/Capsule.js';
 import { getWindowAI } from 'window.ai';
 import { v4 as uuidv4 } from 'uuid';
+import { io } from "socket.io-client";
+import * as TWEEN from '@tweenjs/tween.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// TODO: not sure if this is working, React or Vite may be calling this twice
+let emitPlayerInterval = null;
+let socket = null;
+
 export function startGenDemo(config) {
+    const WORLD_ID = '1'; // TODO: parameterize this
+
     const setGenerateObjectsHandler = config.setGenerateObjectsHandler;
     const setScreenshotObjectHandler = config.setScreenshotObjectHandler;
 
@@ -34,8 +43,8 @@ export function startGenDemo(config) {
     // ambient light
     const ambientLight = new THREE.HemisphereLight(0x8dc1de, 0x00668d, 5);
 
-    const directionalLight2 = new THREE.DirectionalLight( 0xffffff, 8 );
-    scene.add( directionalLight2 );
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 8);
+    scene.add(directionalLight2);
 
     // TODO: might have broken shadows because environment is large and the values are too small to account for the range
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5);
@@ -54,7 +63,7 @@ export function startGenDemo(config) {
     // scene.add(directionalLight);
 
     const container = document.getElementById('container');
-    
+
     // Reset container because useEffect / Vite will rerun this code.
     // If React.StrictMode is used, this code will run twice.
     // TODO: look into React Three Fiber, maybe help with this
@@ -179,7 +188,174 @@ export function startGenDemo(config) {
 
     }
 
+    function getPlayerPosition() {
+        return camera.position;
+    }
+
+    function getPlayerQuaternion() {
+        return camera.quaternion;
+    }
+
+    const playerId = uuidv4();
+    const players = {};
+
+    // TODO: parameterize socket endpoint
+    let socketEndpoint = 'http://localhost:6483';
+
+    if (!socket) {
+        socket = io(socketEndpoint);
+    }
+
+    socket.on('position', function (msg) {
+        // console.log(msg);
+
+        try {
+            updatePlayerInfo(msg);
+        } catch (e) {
+            console.error(e);
+        }
+        // showChatMessage(msg);
+    });
+
+    function generateCube() {
+        const cubeSize = 2;
+        const boxGeometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize).toNonIndexed();
+
+        let position = boxGeometry.attributes.position;
+        const colorsBox = [];
+
+        const color = new THREE.Color();
+
+        for (let i = 0, l = position.count; i < l; i++) {
+
+            color.setHSL(Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75, THREE.SRGBColorSpace);
+            colorsBox.push(color.r, color.g, color.b);
+
+        }
+
+        boxGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colorsBox, 3));
+
+
+        const boxMaterial = new THREE.MeshPhongMaterial({ specular: 0xffffff, flatShading: true, vertexColors: true });
+        boxMaterial.color.setHSL(Math.random() * 0.2 + 0.5, 0.75, Math.random() * 0.25 + 0.75, THREE.SRGBColorSpace);
+
+        const box = new THREE.Mesh(boxGeometry, boxMaterial);
+
+        return box;
+    }
+
+    function loadAvatar(callback) {
+        let model = generateCube();
+
+        const modelSize = 0.4;
+        model.scale.set(modelSize, modelSize, modelSize);
+
+        callback(model);
+    }
+
+    function updatePlayerInfo(info) {
+        const playerId = info.playerId;
+
+        console.log('updatePlayerInfo', info);
+
+        if (!players[playerId]) {
+            // set info here to prevent race condition of loading multiple avatars for same player ID
+            players[playerId] = {
+                info: info,
+                avatar: null,
+                timestamp: Date.now()
+            };
+
+            loadAvatar(function (model) {
+                // let model = gltf.scene;
+                scene.add(model);
+
+                console.log('Loading avatar for player ID: ' + playerId);
+
+                players[playerId].avatar = model;
+
+                var position = info.position;
+                model.position.set(
+                    position.x,
+                    position.y,
+                    position.z
+                );
+
+                var quaternion = info.quaternion;
+                model.quaternion.set(
+                    quaternion.x,
+                    quaternion.y,
+                    quaternion.z,
+                    quaternion.w
+                );
+            });
+        } else {
+            var avatar = players[playerId].avatar;
+
+            if (avatar) {
+
+                console.log('Updating avatar for player ID: ' + playerId);
+
+                var position = info.position;
+                var quaternion = info.quaternion;
+                var deltaTime = Date.now() - players[playerId].timestamp;
+                players[playerId].timestamp = Date.now();
+
+                const coords = {
+                    x: avatar.position.x,
+                    y: avatar.position.y,
+                    z: avatar.position.z
+                };
+
+                const tween = new TWEEN.Tween(avatar.position) // Create a new tween that modifies 'coords'.
+                    .to({
+                        x: position.x,
+                        y: position.y,
+                        z: position.z,
+                    }, deltaTime) // Move to (300, 200) in 1 second.
+                    .easing(TWEEN.Easing.Linear.None) // Use an easing function to make the animation smooth.
+                    .onUpdate(() => {
+                        // Called after tween.js updates 'coords'.
+                        // Move 'box' to the position described by 'coords' with a CSS translation.
+                        // box.style.setProperty('transform', `translate(${coords.x}px, ${coords.y}px)`)
+                    })
+                    .start() // Start the tween immediately.
+            }
+
+            players[playerId].info = info;
+        }
+    }
+
+    function emitPlayerInfo() {
+        var pos = getPlayerPosition();
+        var quat = getPlayerQuaternion();
+
+        socket.emit('position', {
+            playerId: playerId,
+            position: {
+                x: pos.x,
+                y: pos.y,
+                z: pos.z
+            },
+            quaternion: {
+                x: quat.x,
+                y: quat.y,
+                z: quat.z,
+                w: quat.w
+            },
+            roomId: WORLD_ID
+        });
+    }
+
+    // TODO: dynamically change delay based on number of players in room, to reduce lagginess
+    // Can increase delay if two players are farther apart
+    clearInterval(emitPlayerInterval); // clear so we don't have multiple intervals running when React or Vite refreshes the page
+    emitPlayerInterval = setInterval(emitPlayerInfo, 500);
+
     function throwBall() {
+
+        // disable throwing ball for now, since need code to sync across multiplayer
+        return;
 
         const sphere = spheres[sphereIdx];
 
@@ -471,7 +647,7 @@ export function startGenDemo(config) {
     }
 
     async function queryObjects() {
-        const worldId = '1';
+        const worldId = WORLD_ID;
 
         // query objects table for rows with matching world_id
         const response = await fetch(`http://localhost:6483/query_objects?worldId=${worldId}`);
@@ -496,7 +672,7 @@ export function startGenDemo(config) {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                worldId: '1',
+                worldId: WORLD_ID,
                 prompt: prompt,
                 plyUri: plyURI,
                 object: object
@@ -525,7 +701,7 @@ export function startGenDemo(config) {
 
             geometry.computeVertexNormals();
 
-            var material = new THREE.MeshStandardMaterial({ 
+            var material = new THREE.MeshStandardMaterial({
                 vertexColors: true
             });
             const mesh = new THREE.Mesh(geometry, material);
@@ -587,7 +763,7 @@ export function startGenDemo(config) {
 
             geometry.computeVertexNormals();
 
-            var material = new THREE.MeshStandardMaterial({ 
+            var material = new THREE.MeshStandardMaterial({
                 vertexColors: true
             });
             const mesh = new THREE.Mesh(geometry, material);
@@ -666,7 +842,7 @@ export function startGenDemo(config) {
 
             geometry.computeVertexNormals();
 
-            var material = new THREE.MeshStandardMaterial({ 
+            var material = new THREE.MeshStandardMaterial({
                 vertexColors: true
             });
             const mesh = new THREE.Mesh(geometry, material);
@@ -779,8 +955,20 @@ export function startGenDemo(config) {
 
     }
 
+    let secondsPassed;
+    let oldTimeStamp;
 
     function animate() {
+        var timeStamp = Date.now();
+
+        if (!oldTimeStamp) {
+            oldTimeStamp = timeStamp;
+            requestAnimationFrame(animate);
+            return;
+        }
+        // Calculate the number of seconds passed since the last frame
+        secondsPassed = (timeStamp - oldTimeStamp) / 1000.0;
+        oldTimeStamp = timeStamp;
 
         const deltaTime = Math.min(0.05, clock.getDelta()) / STEPS_PER_FRAME;
 
@@ -805,6 +993,23 @@ export function startGenDemo(config) {
 
         requestAnimationFrame(animate);
 
+        TWEEN.update();
+
+        const playerRotationSpeed = 5;
+        const rotationStep = playerRotationSpeed * secondsPassed;
+
+        for (const pId in players) {
+            var p = players[pId];
+
+            if (p.avatar) {
+                p.avatar.quaternion.rotateTowards(new THREE.Quaternion(
+                    p.info.quaternion.x,
+                    p.info.quaternion.y,
+                    p.info.quaternion.z,
+                    p.info.quaternion.w
+                ), rotationStep);
+            }
+        }
     }
 
     window.addEventListener('resize', onWindowResize, false);

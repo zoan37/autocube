@@ -96,9 +96,7 @@ function startServer() {
         cors: {
             // TODO: add origins from .env file
             // TODO: wildcard origin is not secure
-            origin: [
-                '*'
-            ],
+            origin: '*',
             methods: ["GET", "POST"]
         }
     });

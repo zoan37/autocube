@@ -57,7 +57,7 @@ function App() {
       <Screenshotter object={screenshotObject} handleScreenshot={handleScreenshot}/>
       <div>
         <a className="code-button" target="_blank"
-          href="https://github.com/zoan37/world-generation-demo"
+          href="https://github.com/zoan37/AutoCube"
           title="View source code on GitHub">
           <img src="/svg/ic_code_black_24dp.svg" />
         </a>
