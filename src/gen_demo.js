@@ -470,6 +470,21 @@ export function startGenDemo(config) {
         setScreenshotObjectHandler(newObject);
     }
 
+    async function queryObjects() {
+        const worldId = '1';
+
+        // query objects table for rows with matching world_id
+        const response = await fetch(`http://localhost:6483/query_objects?worldId=${worldId}`);
+
+        console.log('query_objects response', response);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    }
+
     async function uploadPly(prompt, plyURI, object) {
         console.log('uploading ply');
         console.log(plyURI);
@@ -495,6 +510,45 @@ export function startGenDemo(config) {
         }
     }
 
+    async function registerObject(object) {
+        const plyURI = getObjectUrl(object);
+
+        // TODO: read object position, rotation, scale
+        const position = object.object.position;
+        const rotation = object.object.rotation;
+        const scale = object.object.scale;
+
+        const plyLoader = new PLYLoader();
+        plyLoader.load(plyURI, function (geometry) {
+
+            console.log('ply loaded', geometry);
+
+            geometry.computeVertexNormals();
+
+            var material = new THREE.MeshStandardMaterial({ 
+                vertexColors: true
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+
+            mesh.position.x = position.x;
+            mesh.position.y = position.y;
+            mesh.position.z = position.z;
+
+            mesh.rotation.x = rotation.x;
+            mesh.rotation.y = rotation.y;
+            mesh.rotation.z = rotation.z;
+
+            mesh.scale.x = scale.x;
+            mesh.scale.y = scale.y;
+            mesh.scale.z = scale.z;
+
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            scene.add(mesh);
+        });
+    }
+
     async function generateNewObject(inputText) {
         const plyURI = await generate3DObject(inputText);
 
@@ -502,22 +556,25 @@ export function startGenDemo(config) {
         const newObjectPosition = new THREE.Vector3();
         newObjectPosition.copy(playerCollider.end).addScaledVector(playerDirection, playerCollider.radius * 3);
 
+        const ROT_X = - Math.PI / 2;
+        const SCALE = 1;
+
         await uploadPly(inputText, plyURI, {
-            type: 'object', // TODO: types are 'object' and 'environment', need to parameterize
+            type: 'object',
             position: {
                 x: newObjectPosition.x,
                 y: newObjectPosition.y,
                 z: newObjectPosition.z
             },
             rotation: {
-                x: 0,
+                x: ROT_X,
                 y: 0,
                 z: 0
             },
             scale: {
-                x: 1, // TODO: need to modify this for object and environment
-                y: 1,
-                z: 1
+                x: SCALE,
+                y: SCALE,
+                z: SCALE
             }
         });
 
@@ -535,8 +592,8 @@ export function startGenDemo(config) {
             });
             const mesh = new THREE.Mesh(geometry, material);
 
-            mesh.rotation.x = - Math.PI / 2;
-            mesh.scale.multiplyScalar(1);
+            mesh.rotation.x = ROT_X;
+            mesh.scale.multiplyScalar(SCALE);
 
             mesh.castShadow = true;
             mesh.receiveShadow = true;
@@ -547,9 +604,31 @@ export function startGenDemo(config) {
         });
     }
 
+    const ENVIRONMENT_ROT_X = - Math.PI / 2;
+    const ENVIRONMENT_SCALE = 100;
+
     async function generateNewEnvironment(inputText) {
 
         const plyURI = await generate3DObject(inputText);
+
+        await uploadPly(inputText, plyURI, {
+            type: 'environment',
+            position: {
+                x: 0,
+                y: 0,
+                z: 0
+            },
+            rotation: {
+                x: ENVIRONMENT_ROT_X,
+                y: 0,
+                z: 0
+            },
+            scale: {
+                x: ENVIRONMENT_SCALE,
+                y: ENVIRONMENT_SCALE,
+                z: ENVIRONMENT_SCALE
+            }
+        });
 
         addToGeneratedObjects(inputText, plyURI);
 
@@ -592,8 +671,8 @@ export function startGenDemo(config) {
             });
             const mesh = new THREE.Mesh(geometry, material);
 
-            mesh.rotation.x = - Math.PI / 2;
-            mesh.scale.multiplyScalar(100);
+            mesh.rotation.x = ENVIRONMENT_ROT_X;
+            mesh.scale.multiplyScalar(ENVIRONMENT_SCALE);
 
             mesh.castShadow = true;
             mesh.receiveShadow = true;
@@ -634,11 +713,37 @@ export function startGenDemo(config) {
     window.generate3DObject = generate3DObject;
     window.generateNewEnvironment = generateNewEnvironment;
 
+    function getObjectUrl(object) {
+        return `https://w3s.link/ipfs/${object.cid}/${object.filename}`;
+    }
+
     async function loadScene() {
 
         console.log('loading scene');
 
-        const plyURI = './models/ply/an underwater temple.ply'
+        const queryObjectsResponse = await queryObjects();
+        const objects = queryObjectsResponse.objects;
+
+        console.log('queryObjectsResponse', queryObjectsResponse);
+
+        // find object with type environment
+        const environmentObject = objects.find(object => object.object.type == 'environment');
+
+        let plyURI = './models/ply/an underwater temple.ply';
+
+        if (environmentObject) {
+            plyURI = getObjectUrl(environmentObject);
+        }
+
+        // TODO: make loading screen where you load all the objects first before entering scene
+        // loop through objects with type object
+        for (const object of objects) {
+            if (object.object.type == 'object') {
+                registerObject(object);
+            }
+        }
+
+        // TODO: read object position, rotation, scale
 
         loadPlyEnvironment(plyURI, () => {
             octreeHelper = new OctreeHelper(worldOctree);

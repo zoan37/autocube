@@ -23,21 +23,36 @@ const pool = new Pool({
   },
 });
 
+async function queryObjects(worldId) {
+    // query objects table for rows with matching world_id
+    const client = await pool.connect();
+    try {
+        const text = 'SELECT * FROM objects WHERE world_id = $1';
+        const values = [worldId];
+        const res = await client.query(text, values);
+
+        console.log('text', text);
+        console.log('values', values);
+        console.log('res', res);
+        console.log('res.rows', res.rows);
+        
+        return res.rows;
+    } finally {
+        client.release();
+    }
+}
+
 async function writeObject(object) {
     console.log('writing object to database');
-    
+
     // TODO: add timestamp column
     const client = await pool.connect();
     try {
         const text = 'INSERT INTO objects(world_id, cid, filename, object) VALUES($1, $2, $3, $4)';
         const values = [object.world_id, object.cid, object.filename, object.object];
         
-        try {
-            await client.query(text, values);
-            console.log('inserted');
-        } catch (err) {
-            console.log(err.stack);
-        }
+        await client.query(text, values);
+        console.log('inserted');
     } finally {
         client.release();
     }
@@ -100,6 +115,19 @@ function startServer() {
 
     app.get('/', (req, res) => {
         res.send("Hi! I'm a game server.");
+    });
+
+    app.get('/query_objects', async (req, res) => {
+        try {
+            const worldId = req.query.worldId;
+            const objects = await queryObjects(worldId);
+            res.json({
+                objects: objects
+            });
+        } catch (e) {
+            console.error(e);
+            res.status(500).send(e);
+        }
     });
 
     // Uploading ply files to IPFS is more scalable (50 people in a room can fetch the same file from IPFS).
