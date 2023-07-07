@@ -218,7 +218,12 @@ export function startGenDemo(config) {
     socket.on('object', function (msg) {
         console.log('socket received object', msg);
         try {
-            registerObject(msg);
+            // if object type is environment, register new environment
+            if (msg.object.type == 'environment') {
+                registerNewEnvironment(msg);
+            } else {
+                registerObject(msg);
+            }
         } catch (e) {
             console.error(e);
         }
@@ -821,6 +826,36 @@ export function startGenDemo(config) {
 
     const ENVIRONMENT_ROT_X = - Math.PI / 2;
     const ENVIRONMENT_SCALE = 100;
+
+    function registerNewEnvironment(object) {
+        const plyURI = getObjectUrl(object);
+
+        // TODO: phase out currentEnvironmentPrompt and currentEnvironmentDataURI variables, they're not being used anymore
+        // currentEnvironmentPrompt = inputText;
+        // currentEnvironmentDataURI = plyURI;
+
+        if (currentEnvironmentScene) {
+            scene.remove(currentEnvironmentScene);
+        }
+
+        if (octreeHelper) {
+            scene.remove(octreeHelper);
+        }
+
+        // TODO: maybe a way to clear an Octree? Or create a subclass to do that
+        worldOctree = new Octree();
+
+        loadPlyEnvironment(plyURI, () => {
+            console.log('new environment loaded');
+
+            octreeHelper = new OctreeHelper(worldOctree);
+            octreeHelper.visible = false;
+            scene.add(octreeHelper);
+
+            // reset player's xyz position
+            respawnPlayerPosition();
+        });
+    }
 
     async function generateNewEnvironment(inputText) {
 
