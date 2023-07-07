@@ -893,6 +893,19 @@ export function startGenDemo(config) {
         return `https://w3s.link/ipfs/${object.cid}/${object.filename}`;
     }
 
+    function findMostRecentEnvironment(objects) {
+        const filteredObjects = objects.filter(obj => obj.object.type == 'environment');
+
+        if (filteredObjects.length == 0) {
+            return null; // No objects with the given name found
+        }
+
+        // Sort objects by timestamp in descending order
+        filteredObjects.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        return filteredObjects[0]; // Return the most recent object
+    }
+
     async function loadScene() {
 
         console.log('loading scene');
@@ -902,13 +915,13 @@ export function startGenDemo(config) {
 
         console.log('queryObjectsResponse', queryObjectsResponse);
 
-        // find object with type environment
-        const environmentObject = objects.find(object => object.object.type == 'environment');
+        const environmentObject = findMostRecentEnvironment(objects);
 
         let plyURI = './models/ply/an underwater temple.ply';
 
         if (environmentObject) {
             plyURI = getObjectUrl(environmentObject);
+            respawnPlayerPosition();
         }
 
         // TODO: make loading screen where you load all the objects first before entering scene

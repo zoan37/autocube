@@ -12,6 +12,7 @@ import { Readable } from 'stream';
 
 import pg from 'pg';
 import 'dotenv/config';
+import retry from 'async-retry';
 
 const { Pool } = pg;
 const { DATABASE_URL } = process.env;
@@ -23,9 +24,21 @@ const pool = new Pool({
   },
 });
 
+async function connectWithRetry() {
+    const client = await retry(async () => {
+        console.log('connecting to database');
+        const client = await pool.connect();
+        return client;
+    }, {
+        retries: 5,
+    });
+
+    return client;
+  }
+
 async function queryObjects(worldId) {
     // query objects table for rows with matching world_id
-    const client = await pool.connect();
+    const client = await connectWithRetry();
     try {
         const text = 'SELECT * FROM objects WHERE world_id = $1';
         const values = [worldId];
@@ -45,11 +58,12 @@ async function queryObjects(worldId) {
 async function writeObject(object) {
     console.log('writing object to database');
 
-    // TODO: add timestamp column
-    const client = await pool.connect();
+    const timestamp = new Date();
+
+    const client = await connectWithRetry();
     try {
-        const text = 'INSERT INTO objects(world_id, cid, filename, object) VALUES($1, $2, $3, $4)';
-        const values = [object.world_id, object.cid, object.filename, object.object];
+        const text = 'INSERT INTO objects(world_id, cid, filename, object, timestamp) VALUES($1, $2, $3, $4, $5)';
+        const values = [object.world_id, object.cid, object.filename, object.object, timestamp];
         
         await client.query(text, values);
         console.log('inserted');
