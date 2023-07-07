@@ -40,9 +40,9 @@ function App() {
   return (
     <>
       <div className="info-bar">
-        World Generation Demo using <a href="https://windowai.io/" target="_blank">window.ai</a>
+        Welcome to AutoCube!
         <br />
-        Generate environments and objects with natural language
+        This is a multiplayer sandbox demo (assume all generated objects will not be saved)
         <br />
         MOUSE to look around and to throw balls
         <br />

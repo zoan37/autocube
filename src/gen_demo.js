@@ -207,14 +207,21 @@ export function startGenDemo(config) {
     }
 
     socket.on('position', function (msg) {
-        // console.log(msg);
-
         try {
             updatePlayerInfo(msg);
         } catch (e) {
             console.error(e);
         }
-        // showChatMessage(msg);
+    });
+
+    socket.on('leave', function (msg) {
+        console.log(msg);
+
+        try {
+            removePlayerInfo(msg);
+        } catch (e) {
+            console.error(e);
+        }
     });
 
     function generateCube() {
@@ -324,6 +331,20 @@ export function startGenDemo(config) {
 
             players[playerId].info = info;
         }
+    }
+
+    function removePlayerInfo(info) {
+        let playerId = info.playerId;
+
+        console.log('Players:');
+        console.log(players);
+        console.log('Removing player with ID: ' + playerId);
+
+        if (players[playerId].avatar) {
+            players[playerId].avatar.removeFromParent();
+        }
+
+        delete players[playerId];
     }
 
     function emitPlayerInfo() {
