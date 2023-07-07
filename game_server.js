@@ -18,10 +18,10 @@ const { Pool } = pg;
 const { DATABASE_URL } = process.env;
 
 const pool = new Pool({
-  connectionString: DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+    connectionString: DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false,
+    },
 });
 
 async function connectWithRetry() {
@@ -34,7 +34,7 @@ async function connectWithRetry() {
     });
 
     return client;
-  }
+}
 
 async function queryObjects(worldId) {
     // query objects table for rows with matching world_id
@@ -48,7 +48,7 @@ async function queryObjects(worldId) {
         console.log('values', values);
         console.log('res', res);
         console.log('res.rows', res.rows);
-        
+
         return res.rows;
     } finally {
         client.release();
@@ -62,11 +62,15 @@ async function writeObject(object) {
 
     const client = await connectWithRetry();
     try {
-        const text = 'INSERT INTO objects(world_id, cid, filename, object, timestamp) VALUES($1, $2, $3, $4, $5)';
+        const text = 'INSERT INTO objects(world_id, cid, filename, object, timestamp) VALUES($1, $2, $3, $4, $5) RETURNING id, world_id, cid, filename, object, timestamp';
         const values = [object.world_id, object.cid, object.filename, object.object, timestamp];
-        
-        await client.query(text, values);
-        console.log('inserted');
+
+        const result = await client.query(text, values);
+
+        const insertedId = result.rows[0].id;
+        console.log('Inserted row ID:', insertedId);
+
+        return result.rows[0];
     } finally {
         client.release();
     }
@@ -142,6 +146,8 @@ function startServer() {
         }
     });
 
+    // TODO: consider storing prompt in database
+
     // Uploading ply files to IPFS is more scalable (50 people in a room can fetch the same file from IPFS).
     // The game server directly serving the ply file consumes too much bandwidth.
     app.post('/upload_ply', express.json({ limit: '10mb' }), async (req, res) => {
@@ -155,7 +161,7 @@ function startServer() {
             const files = [file];
             const rootCid = await web3Storage.put(files);
 
-            await writeObject({
+            const { rowId, timestamp } = await writeObject({
                 world_id: worldId,
                 cid: rootCid,
                 filename: name,
@@ -163,8 +169,12 @@ function startServer() {
             });
 
             res.json({
-                rootCid: rootCid,
-                filename: name
+                worldId: worldId,
+                rowId: rowId,
+                cid: rootCid,
+                filename: name,
+                object: object,
+                timestamp: timestamp
             });
         } catch (e) {
             console.error(e);
@@ -178,6 +188,16 @@ function startServer() {
         socket.on('chat_message', (msg) => {
             const roomId = msg.roomId;
             io.to(roomId).emit('chat_message', msg);
+        });
+
+        socket.on('object', (msg) => {
+            // TODO: edge case of one user emitting an object, but other user hasn't joined room yet so it won't get the object
+
+            console.log('socket.on object', msg);
+
+            const roomId = msg.roomId;
+
+            socket.to(roomId).emit('object', msg);
         });
 
         socket.on('position', (msg) => {

@@ -214,6 +214,16 @@ export function startGenDemo(config) {
         }
     });
 
+    // TODO: use object ID to determine if it has been rendered already or not
+    socket.on('object', function (msg) {
+        console.log('socket received object', msg);
+        try {
+            registerObject(msg);
+        } catch (e) {
+            console.error(e);
+        }
+    });
+
     socket.on('leave', function (msg) {
         console.log(msg);
 
@@ -263,7 +273,7 @@ export function startGenDemo(config) {
     function updatePlayerInfo(info) {
         const playerId = info.playerId;
 
-        console.log('updatePlayerInfo', info);
+        // console.log('updatePlayerInfo', info);
 
         if (!players[playerId]) {
             // set info here to prevent race condition of loading multiple avatars for same player ID
@@ -301,7 +311,7 @@ export function startGenDemo(config) {
 
             if (avatar) {
 
-                console.log('Updating avatar for player ID: ' + playerId);
+                // console.log('Updating avatar for player ID: ' + playerId);
 
                 var position = info.position;
                 var quaternion = info.quaternion;
@@ -701,6 +711,14 @@ export function startGenDemo(config) {
         });
 
         console.log('upload_ply response', response);
+        const responseJSONObject = await response.json();
+        console.log('upload_ply response.json()', responseJSONObject);
+
+        responseJSONObject.roomId = WORLD_ID;
+        responseJSONObject.playerId = playerId;
+
+        // emit object info to other players
+        socket.emit('object', responseJSONObject);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
