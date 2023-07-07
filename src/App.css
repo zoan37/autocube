@@ -99,3 +99,12 @@
   opacity: 1;
   font-weight: 500;
 }
+
+.overall_container {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  z-index: 100;
+  background-color: transparent;
+  text-align: left;
+}

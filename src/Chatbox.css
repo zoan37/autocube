@@ -1,0 +1,12 @@
+.chatbox_container {
+    padding: 12px;
+    background-color: rgba(255, 255, 255, 0.5);
+    text-align: left;
+    border-radius: 5px;
+}
+
+.chatbox_text_container {
+    height: 180px;
+    overflow-y: scroll; /* Enable vertical scrolling */
+    margin-bottom: 12px;
+}

@@ -5,6 +5,7 @@ import { startGenDemo } from "./gen_demo.js";
 import GenerateInput from './GenerateInput.tsx';
 import PlyViewer from './PlyViewer.tsx';
 import Screenshotter from './Screenshotter.tsx';
+import Chatbox from './Chatbox.tsx';
 
 interface GeneratedObject {
   id: string;
@@ -53,7 +54,10 @@ function App() {
       <PlyViewer
         generatedObjects={generatedObjects}
       />
-      <GenerateInput />
+      <div className="overall_container">
+        <Chatbox />
+        <GenerateInput />
+      </div>
       <Screenshotter object={screenshotObject} handleScreenshot={handleScreenshot}/>
       <div>
         <a className="code-button" target="_blank"
