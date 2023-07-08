@@ -1,0 +1,13 @@
+.ply_view {
+    background-color: red;
+    width: 800px;
+    height: 500px;
+    position: absolute;
+    z-index: 1000;
+    left: 50px;
+    top: 50px;
+}
+
+.ply_view_table td {
+    padding: 10px;
+}
