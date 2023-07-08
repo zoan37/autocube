@@ -15,10 +15,17 @@ interface GeneratedObject {
   screenshotDataURI: string;
 }
 
+export interface ChatMessage {
+  text: string;
+  timestamp: Date;
+  username: string;
+}
+
 function App() {
   const [generatedObjects, setGeneratedObjects] = useState([] as GeneratedObject[]);
   const [screenshotObject, setScreenshotObject] = useState({} as GeneratedObject);
   const [username, setUsername] = useState('Guest');
+  const [chatMessages, setChatMessages] = useState([] as ChatMessage[]);
 
   function handleScreenshot(screenshotDataUri: string) {
     const clonedObjects : GeneratedObject[] = generatedObjects.slice();
@@ -36,6 +43,11 @@ function App() {
       },
       setScreenshotObjectHandler: (object: GeneratedObject) => {
         setScreenshotObject(object);
+      },
+      setChatMessagesHandler: (messages: ChatMessage[]) => {
+        const clonedMessages = messages.slice();
+        setChatMessages(clonedMessages);
+        console.log('setChatMessagesHandler', clonedMessages);
       }
     });
   }, []);
@@ -58,7 +70,10 @@ function App() {
       />
       <Settings username={username} setUsername={setUsername} />
       <div className="overall_container">
-        <Chatbox username={username}/>
+        <Chatbox
+          username={username}
+          chatMessages={chatMessages}
+        />
         <GenerateInput />
       </div>
       <Screenshotter object={screenshotObject} handleScreenshot={handleScreenshot}/>

@@ -86,7 +86,8 @@ function GenerateInput() {
                         }
                     </button>
                 </div>
-                <hr/>
+            </div>
+            <div className="generate_input_container mt-2">
                 <div>
                     <button className="btn btn-light me-2" type="button"
                         data-bs-toggle="modal" data-bs-target="#plyViewerModal"

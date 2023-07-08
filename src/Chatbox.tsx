@@ -1,23 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './Chatbox.css';
-
-interface ChatMessage {
-    text: string;
-    timestamp: Date;
-    username: string;
-}
+import { ChatMessage } from './App';
 
 interface ChatboxProps {
     username: string;
+    chatMessages: ChatMessage[];
 }
 
 const Chatbox: React.FC<ChatboxProps> = (
     {
-        username
+        username,
+        chatMessages
     }
 ) => {
     const [message, setMessage] = useState('');
-    const [chatMessages, setChatMessages] = useState([] as ChatMessage[]);
     const chatboxEndRef = useRef<HTMLDivElement>(null);
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,12 +39,16 @@ const Chatbox: React.FC<ChatboxProps> = (
                 timestamp: new Date(),
                 username: username,
             };
-            // create new array with previous messages and new message
-            const newChatMessages = [...chatMessages, newMessage] as ChatMessage[];
 
-            setChatMessages(newChatMessages);
             setMessage('');
-            scrollToBottom();
+
+            // @ts-ignore
+            window.sendChatMessage(newMessage);
+            // create new array with previous messages and new message
+            // const newChatMessages = [...chatMessages, newMessage] as ChatMessage[];
+
+            // setChatMessages(newChatMessages);
+            // scrollToBottom();
         }
     };
 

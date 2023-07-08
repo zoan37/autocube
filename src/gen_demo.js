@@ -22,8 +22,11 @@ let socket = null;
 export function startGenDemo(config) {
     const WORLD_ID = '1'; // TODO: parameterize this
 
+    const chatMessageHistory = [];
+
     const setGenerateObjectsHandler = config.setGenerateObjectsHandler;
     const setScreenshotObjectHandler = config.setScreenshotObjectHandler;
+    const setChatMessagesHandler = config.setChatMessagesHandler;
 
     const generatedObjects = [];
 
@@ -229,6 +232,15 @@ export function startGenDemo(config) {
         }
     });
 
+    socket.on('chat_message', function (msg) {
+        console.log('received chat message')
+        console.log(msg);
+
+        chatMessageHistory.push(msg);
+
+        setChatMessagesHandler(chatMessageHistory);
+    });
+
     socket.on('leave', function (msg) {
         console.log(msg);
 
@@ -238,6 +250,16 @@ export function startGenDemo(config) {
             console.error(e);
         }
     });
+
+    function sendChatMessage(chatMessage) {
+        console.log('sendChatMessage: ', chatMessage);
+        chatMessage.roomId = WORLD_ID;
+        chatMessage.playerId = playerId;
+
+        socket.emit('chat_message', chatMessage);
+    }
+
+    window.sendChatMessage = sendChatMessage;
 
     function generateCube() {
         const cubeSize = 2;
