@@ -20,7 +20,19 @@ let emitPlayerInterval = null;
 let socket = null;
 
 export function startGenDemo(config) {
-    const WORLD_ID = '1'; // TODO: parameterize this
+    // Get the URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Retrieve the value of 'world_id' parameter
+    let worldId = urlParams.get('world_id');
+    if (!worldId) {
+        alert('To proceed, choose a world_id parameter in the URL (e.g. ?world_id=1), can be a number or string.');
+        throw new Error('world_id parameter is required in URL');
+    } else {
+        worldId = worldId.toLowerCase();
+    }
+
+    const WORLD_ID = worldId;
 
     const chatMessageHistory = [];
 
