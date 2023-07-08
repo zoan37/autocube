@@ -34,6 +34,25 @@ export function startGenDemo(config) {
 
     const WORLD_ID = worldId;
 
+    function getGameServerEndpoint(inputURL) {
+        // Split the URL into different components
+        const [protocol, rest] = inputURL.split("://");
+        const [domain, portPath] = rest.split(":");
+        const [port, path] = portPath.split("/");
+
+        // Modify the port number
+        const newPort = 6483;
+
+        // Construct the new URL
+        const newURL = `${protocol}://${domain}:${newPort}`;
+
+        return newURL;
+    }
+
+    const GAME_SERVER_ENDPOINT = getGameServerEndpoint(window.location.origin);
+
+    console.log('GAME_SERVER_ENDPOINT', GAME_SERVER_ENDPOINT);
+
     const chatMessageHistory = [];
 
     const setGenerateObjectsHandler = config.setGenerateObjectsHandler;
@@ -214,8 +233,7 @@ export function startGenDemo(config) {
     const playerId = uuidv4();
     const players = {};
 
-    // TODO: parameterize socket endpoint
-    let socketEndpoint = 'http://localhost:6483';
+    let socketEndpoint = GAME_SERVER_ENDPOINT;
 
     if (!socket) {
         socket = io(socketEndpoint);
@@ -720,7 +738,7 @@ export function startGenDemo(config) {
         const worldId = WORLD_ID;
 
         // query objects table for rows with matching world_id
-        const response = await fetch(`http://localhost:6483/query_objects?worldId=${worldId}`);
+        const response = await fetch(`${GAME_SERVER_ENDPOINT}/query_objects?worldId=${worldId}`);
 
         console.log('query_objects response', response);
 
@@ -736,7 +754,7 @@ export function startGenDemo(config) {
         console.log(plyURI);
 
         // call game server with upload_ply endpoint
-        const response = await fetch('http://localhost:6483/upload_ply', {
+        const response = await fetch(`${GAME_SERVER_ENDPOINT}/upload_ply`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
