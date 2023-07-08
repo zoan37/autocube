@@ -88,10 +88,15 @@ function GenerateInput() {
                 </div>
                 <hr/>
                 <div>
-                    <button className="btn btn-light" type="button"
+                    <button className="btn btn-light me-2" type="button"
                         data-bs-toggle="modal" data-bs-target="#plyViewerModal"
                     >
                         View Generation History
+                    </button>
+                    <button className="btn btn-light" type="button"
+                        data-bs-toggle="modal" data-bs-target="#settingsModal"
+                    >
+                        Set Username
                     </button>
                 </div>
             </div>

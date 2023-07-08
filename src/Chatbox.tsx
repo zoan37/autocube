@@ -7,7 +7,15 @@ interface ChatMessage {
     username: string;
 }
 
-function Chatbox() {
+interface ChatboxProps {
+    username: string;
+}
+
+const Chatbox: React.FC<ChatboxProps> = (
+    {
+        username
+    }
+) => {
     const [message, setMessage] = useState('');
     const [chatMessages, setChatMessages] = useState([] as ChatMessage[]);
     const chatboxEndRef = useRef<HTMLDivElement>(null);
@@ -33,7 +41,7 @@ function Chatbox() {
             const newMessage: ChatMessage = {
                 text: message,
                 timestamp: new Date(),
-                username: 'test',
+                username: username,
             };
             // create new array with previous messages and new message
             const newChatMessages = [...chatMessages, newMessage] as ChatMessage[];
@@ -89,6 +97,6 @@ function Chatbox() {
             </div>
         </>
     );
-}
+};
 
 export default Chatbox;

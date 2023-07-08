@@ -6,6 +6,7 @@ import GenerateInput from './GenerateInput.tsx';
 import PlyViewer from './PlyViewer.tsx';
 import Screenshotter from './Screenshotter.tsx';
 import Chatbox from './Chatbox.tsx';
+import Settings from './Settings.tsx';
 
 interface GeneratedObject {
   id: string;
@@ -17,6 +18,7 @@ interface GeneratedObject {
 function App() {
   const [generatedObjects, setGeneratedObjects] = useState([] as GeneratedObject[]);
   const [screenshotObject, setScreenshotObject] = useState({} as GeneratedObject);
+  const [username, setUsername] = useState('Guest');
 
   function handleScreenshot(screenshotDataUri: string) {
     const clonedObjects : GeneratedObject[] = generatedObjects.slice();
@@ -54,8 +56,9 @@ function App() {
       <PlyViewer
         generatedObjects={generatedObjects}
       />
+      <Settings username={username} setUsername={setUsername} />
       <div className="overall_container">
-        <Chatbox />
+        <Chatbox username={username}/>
         <GenerateInput />
       </div>
       <Screenshotter object={screenshotObject} handleScreenshot={handleScreenshot}/>
